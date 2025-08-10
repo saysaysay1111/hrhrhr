@@ -152,7 +152,6 @@ function render(){
       <div class="title">${titleHtml}</div>
       <div class="row">
         <button class="btn" data-copy="${r.num} ${r.title}">복사</button>
-        <a class="btn" href="?q=${encodeURIComponent(r.num+' '+r.title)}" title="이 항목으로 검색 링크">링크</a>
       </div>
     </article>`;
   }).join('');
