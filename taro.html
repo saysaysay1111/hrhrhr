@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tarot Overlay · Stream</title>
+  <style>
+    :root{
+      --accent: #b794f4; /* 연보라 */
+      --bg: rgba(20,20,28,0.0); /* 투명 배경 (OBS 오버레이 기본) */
+      --panel: rgba(30,30,40,0.75);
+      --text: #f3f3f7;
+      --muted: #c6c6d0;
+      --card: rgba(255,255,255,0.04);
+      --card-border: rgba(255,255,255,0.25);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    *{ box-sizing:border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0; font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Apple SD Gothic Neo, Noto Sans KR, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text); background:var(--bg);
+      overflow:hidden;
+    }
+    .app{ position:relative; height:100%; display:grid; grid-template-columns: 380px 1fr; gap:16px; padding:16px; }
+    .app.overlay-hidden-controls{ grid-template-columns: 1fr; }
+
+    /* 사이드 패널 */
+    .panel{
+      background:var(--panel); border:1px solid var(--card-border); border-radius:20px; box-shadow:var(--shadow);
+      padding:16px; display:flex; flex-direction:column; gap:12px; backdrop-filter: blur(10px);
+    }
+    .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .row > * { flex:1 1 auto; }
+    label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+    input[type="text"], select, input[type="number"], input[type="range"]{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--card-border); background:rgba(255,255,255,0.06); color:var(--text);
+      outline:none; box-shadow:inset 0 0 0 1px transparent; transition: box-shadow .2s, border-color .2s;
+    }
+    input[type="range"]{ padding:0; height:30px; }
+    input:focus, select:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(183,148,244,0.25); }
+
+    .btn{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--card-border); background:rgba(255,255,255,0.08); color:var(--text);
+      cursor:pointer; user-select:none; transition: transform .04s ease, background .2s, border-color .2s; text-align:center; font-weight:600;
+    }
+    .btn:hover{ background:rgba(255,255,255,0.12); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{ background: linear-gradient(180deg, rgba(183,148,244,0.9), rgba(150,110,220,0.9)); border-color: transparent; color:#111; }
+    .btn.ghost{ background: transparent; }
+    .small{ font-size:12px; color:var(--muted); }
+
+    .toggle{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+    .toggle input{ display:none; }
+    .toggle .dot{ width:14px; height:14px; border-radius:50%; border:1px solid var(--card-border); background:#111; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08); }
+    .toggle input:checked + .dot{ background: var(--accent); box-shadow:none; }
+
+    /* 메인 캔버스 */
+    .stage{
+      position:relative; background:radial-gradient(1200px 600px at 60% -10%, rgba(183,148,244,0.16), rgba(50,40,70,0) 60%);
+      border-radius:24px; border:1px dashed rgba(255,255,255,0.14); overflow:hidden; box-shadow:var(--shadow);
+    }
+    .stage.transparent{ background:transparent; border-color: transparent; box-shadow:none; }
+    .stage-inner{ position:absolute; inset:0; padding:24px; display:flex; flex-direction:column; }
+    .header{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .title{ font-weight:800; letter-spacing:.3px; font-size:20px; display:flex; align-items:center; gap:10px; }
+    .title .chip{ padding:4px 8px; border-radius:999px; background:rgba(183,148,244,0.15); border:1px solid rgba(183,148,244,0.35); color:#d9c9ff; font-weight:700; font-size:12px; }
+
+    .cards{ margin-top:18px; display:flex; align-items:center; justify-content:center; gap:18px; flex:1 1 auto; flex-wrap:wrap; }
+
+    .tarot-card{
+      width:180px; height:300px; perspective: 1000px;
+    }
+    .card-wrap{ position:relative; width:100%; height:100%; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+    .tarot-card.flipped .card-wrap{ transform: rotateY(180deg) rotateZ(var(--tilt, -1deg)); }
+    .face{
+      position:absolute; inset:0; backface-visibility:hidden; border-radius:18px; border:1px solid var(--card-border); background:var(--card); overflow:hidden; box-shadow: var(--shadow);
+      display:flex; align-items:center; justify-content:center; padding:14px;
+    }
+    .face.front{ transform: rotateY(180deg); }
+    .face.back{
+      background: linear-gradient(160deg, rgba(183,148,244,0.25), rgba(60,50,80,0.25));
+    }
+    .back .sigil{
+      width:80%; height:80%; border-radius:14px; border:2px dashed rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:28px; letter-spacing:6px; color:#efe7ff;
+    }
+    .front .inner{
+      display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+    }
+    .front .name{ font-weight:900; font-size:18px; letter-spacing:.2px; }
+    .front .minor{ font-size:14px; color:var(--muted); }
+    .front .upright{ font-size:12px; color:#aef3d6; }
+    .front .reversed{ font-size:12px; color:#ffb3b3; display:none; }
+    .tarot-card.reversed .front .upright{ display:none; }
+    .tarot-card.reversed .front .reversed{ display:block; }
+    .badge{ position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.15); padding:4px 8px; border-radius:999px; font-size:11px; }
+    .badge.rev{ left:auto; right:10px; background:rgba(120,0,0,0.35); }
+
+    /* 툴팁/헬프 */
+    .help{ position:absolute; bottom:16px; right:16px; font-size:12px; color:var(--muted); background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.18); padding:8px 10px; border-radius:10px; }
+
+    /* 의미 패널 */
+    .meaning{ margin-top:6px; padding:12px; border-radius:14px; background:rgba(255,255,255,0.06); border:1px solid var(--card-border); font-size:14px; line-height:1.45; }
+    .meaning b{ color:#e9dcff; }
+
+    /* 컨트롤 숨김 (오버레이 모드) */
+    .overlay-hidden-controls .panel{ display:none; }
+
+    @media (max-width: 900px){
+      .app{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- 좌측 제어 패널 -->
+    <aside class="panel" id="controls">
+      <div>
+        <label>시청자 이름 / 씨앗 (같은 이름 = 같은 카드)</label>
+        <input id="viewer" type="text" placeholder="예: 마라님" />
+      </div>
+      <div class="row">
+        <div>
+          <label>스프레드</label>
+          <select id="spread">
+            <option value="1">1장(핵심 조언)</option>
+            <option value="3" selected>3장(과거·현재·미래)</option>
+            <option value="5">5장(상황·장점·장애·조언·결과)</option>
+          </select>
+        </div>
+        <div>
+          <label>역위 확률 <span id="revPctLabel" class="small"></span></label>
+          <input id="revPct" type="range" min="0" max="100" value="45" />
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="btnDraw">새로 뽑기 (D)</button>
+        <button class="btn" id="btnFlip">모두 뒤집기 (F)</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnReset">초기화 (R)</button>
+        <label class="toggle"><input type="checkbox" id="toggleOverlay"><span class="dot"></span>오버레이 모드 (컨트롤 숨김)</label>
+      </div>
+      <div class="meaning" id="meaningBox">카드를 클릭하면 의미가 여기 표시돼요 ✨</div>
+      <div class="small">단축키: <b>D</b> 뽑기, <b>F</b> 모두 뒤집기, <b>R</b> 초기화, <b>H</b> 컨트롤 숨김/표시</div>
+    </aside>
+
+    <!-- 메인 무대 -->
+    <main class="stage" id="stage">
+      <div class="stage-inner">
+        <div class="header">
+          <div class="title">
+            <span class="chip">TAROT</span>
+            <span id="headline">3장 스프레드 · 과거/현재/미래</span>
+          </div>
+          <div class="small" id="seedInfo"></div>
+        </div>
+        <div class="cards" id="cards"></div>
+        <div class="help">Tip: 뽑은 뒤 카드를 하나씩 클릭해서 의미를 읽어주세요.</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // --- 유틸: 해시 & 시드난수 (Mulberry32) ---
+    function hashString(str){
+      let h = 1779033703 ^ str.length;
+      for(let i=0;i<str.length;i++){
+        h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+        h = (h << 13) | (h >>> 19);
+      }
+      return () => {
+        h = Math.imul(h ^ (h>>>16), 2246822507);
+        h = Math.imul(h ^ (h>>>13), 3266489909);
+        h ^= h>>>16; return h>>>0; };
+    }
+    function mulberry32(seed){
+      let t = seed>>>0; return function(){ t += 0x6D2B79F5; let r = Math.imul(t ^ (t>>>15), 1 | t); r ^= r + Math.imul(r ^ (r>>>7), 61 | r); return ((r ^ (r>>>14)) >>> 0) / 4294967296; };
+    }
+
+    function seededRngFrom(text){
+      const gen = hashString(String(text||""))();
+      return mulberry32(gen);
+    }
+    function shuffle(arr, rng){
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(rng()* (i+1)); [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // --- 타로 데이터 ---
+    const MAJOR = [
+      { id:"major-0",  name:"The Fool (바보)",            up:"새 시작, 자유, 모험",          rev:"경솔, 준비 부족" },
+      { id:"major-1",  name:"The Magician (마법사)",       up:"의지 실현, 기술, 집중",         rev:"기만, 에너지 분산" },
+      { id:"major-2",  name:"The High Priestess (여사제)", up:"직관, 비밀, 내면의 소리",       rev:"억눌린 직감, 비밀 노출" },
+      { id:"major-3",  name:"The Empress (여제)",         up:"풍요, 돌봄, 창조성",           rev:"과보호, 정체" },
+      { id:"major-4",  name:"The Emperor (황제)",         up:"질서, 책임, 리더십",           rev:"완고함, 권위 남용" },
+      { id:"major-5",  name:"The Hierophant (교황)",      up:"전통, 멘토, 규범",             rev:"형식 타파, 독자 노선" },
+      { id:"major-6",  name:"The Lovers (연인)",          up:"선택, 관계 조화",              rev:"불일치, 유혹" },
+      { id:"major-7",  name:"The Chariot (전차)",         up:"전진, 의지, 승리",             rev:"통제 상실, 성급함" },
+      { id:"major-8",  name:"Strength (힘)",               up:"용기, 자제, 따뜻한 힘",         rev:"의기소침, 조급" },
+      { id:"major-9",  name:"The Hermit (은둔자)",        up:"성찰, 탐구, 멘토링",           rev:"고립, 답을 외면" },
+      { id:"major-10", name:"Wheel of Fortune (운명의 수레바퀴)", up:"전환점, 순환, 행운", rev:"통제 밖 변화, 지체" },
+      { id:"major-11", name:"Justice (정의)",              up:"균형, 공정, 원인과 결과",       rev:"불균형, 왜곡" },
+      { id:"major-12", name:"The Hanged Man (매달린 자)",  up:"관점 전환, 인내, 내려놓음",     rev:"정체, 희생 회피" },
+      { id:"major-13", name:"Death (죽음)",                 up:"종결과 재탄생, 탈피",          rev:"미루는 이별, 집착" },
+      { id:"major-14", name:"Temperance (절제)",            up:"조화, 중용, 치유",              rev:"과함, 불균형" },
+      { id:"major-15", name:"The Devil (악마)",            up:"유혹, 집착, 속박 인식",         rev:"해방, 끊어냄" },
+      { id:"major-16", name:"The Tower (탑)",              up:"급변, 깨어짐, 진실 폭로",       rev:"피할 수 없는 변화" },
+      { id:"major-17", name:"The Star (별)",               up:"희망, 영감, 회복",              rev:"의심, 기운 저하" },
+      { id:"major-18", name:"The Moon (달)",               up:"무의식, 꿈, 불확실",            rev:"혼란 해소, 진실 드러남" },
+      { id:"major-19", name:"The Sun (태양)",              up:"성공, 생기, 명료",              rev:"지연된 기쁨, 과신" },
+      { id:"major-20", name:"Judgement (심판)",             up:"각성, 재평가, 부름",            rev:"주저, 과거 미련" },
+      { id:"major-21", name:"The World (세계)",            up:"완성, 성취, 통합",              rev:"마무리 지연, 미완" },
+    ];
+
+    const SUITS = [
+      { key:"Wands",     kr:"완드(불)",   icon:"\uD83D\uDD25", theme:"열정/창조" },
+      { key:"Cups",      kr:"컵(물)",     icon:"\uD83D\uDCA7", theme:"감정/관계" },
+      { key:"Swords",    kr:"소드(공기)", icon:"\u2694\uFE0F", theme:"사고/결단" },
+      { key:"Pentacles", kr:"펜타클(흙)", icon:"\uD83E\uDE99", theme:"물질/현실" },
+    ];
+
+    const RANKS = [
+      { key:"Ace",  n:1,  up:"시작, 기회",              rev:"에너지 부족, 불안정" },
+      { key:"Two",  n:2,  up:"균형, 선택/교섭",         rev:"우유부단, 불균형" },
+      { key:"Three",n:3,  up:"성장, 협력",              rev:"지연, 오해" },
+      { key:"Four", n:4,  up:"안정, 토대",              rev:"권태, 정체" },
+      { key:"Five", n:5,  up:"갈등, 시험",              rev:"갈등 완화, 타협" },
+      { key:"Six",  n:6,  up:"조화, 회복, 인정",        rev:"허영, 불균형 교환" },
+      { key:"Seven",n:7,  up:"평가, 인내/방어",         rev:"산만, 동요" },
+      { key:"Eight",n:8,  up:"몰입, 숙련/이동",         rev:"집중 부족, 미루기" },
+      { key:"Nine", n:9,  up:"지속, 경계/성취 임박",    rev:"피로, 포기 직전" },
+      { key:"Ten",  n:10, up:"완수/부담, 전환",         rev:"짐 내려놓기, 미완" },
+      { key:"Page", n:11, up:"메신저, 초심",            rev:"미성숙, 소식 지연" },
+      { key:"Knight",n:12,up:"행동, 추진",              rev:"무모, 지연/변덕" },
+      { key:"Queen", n:13,up:"배려, 성숙한 영향력",     rev:"감정 기복/통제" },
+      { key:"King",  n:14,up:"주도, 책임",              rev:"독단, 경직" },
+    ];
+
+    function buildDeck(){
+      const deck = [];
+      // Major
+      MAJOR.forEach(m=> deck.push({ type:"major", id:m.id, name:m.name, up:m.up, rev:m.rev }));
+      // Minor by suit & rank (간결한 기본 의미: 랭크 + 슈트 테마를 조합)
+      for(const suit of SUITS){
+        for(const r of RANKS){
+          const id = `${r.key}-of-${suit.key}`;
+          const name = `${r.key} of ${suit.key}`;
+          const minor = `${suit.icon} ${suit.kr} · ${suit.theme}`;
+          const up = `${r.up} (${suit.theme})`;
+          const rev = `${r.rev} (${suit.theme})`;
+          deck.push({ type:"minor", id, name, minor, up, rev });
+        }
+      }
+      return deck;
+    }
+
+    // --- 상태 ---
+    const state = {
+      rng: mulberry32(42),
+      seedText: "",
+      deck: buildDeck(),
+      drawn: [],
+      reversedPct: 45,
+      spread: 3,
+    };
+
+    // --- DOM ---
+    const el = (sel)=> document.querySelector(sel);
+    const cardsEl = el('#cards');
+    const headlineEl = el('#headline');
+    const meaningEl = el('#meaningBox');
+    const seedInfoEl = el('#seedInfo');
+
+    function applySeed(){
+      const viewer = el('#viewer').value.trim();
+      const urlSeed = new URLSearchParams(location.search).get('seed') || "";
+      const seedText = viewer || urlSeed || new Date().toDateString();
+      state.seedText = seedText;
+      state.rng = seededRngFrom(seedText);
+      seedInfoEl.textContent = `seed: ${seedText}`;
+    }
+
+    function updateHeadline(){
+      let txt = '';
+      if(state.spread===1) txt = '1장 스프레드 · 핵심 조언';
+      if(state.spread===3) txt = '3장 스프레드 · 과거 / 현재 / 미래';
+      if(state.spread===5) txt = '5장 스프레드 · 상황 / 장점 / 장애 / 조언 / 결과';
+      headlineEl.textContent = txt;
+    }
+
+    function draw(){
+      applySeed();
+      const pool = [...state.deck];
+      shuffle(pool, state.rng);
+      const chose = [];
+      for(let i=0;i<state.spread;i++){
+        const c = pool[i];
+        const reversed = state.rng()*100 < state.reversedPct;
+        chose.push({ ...c, reversed, flipped:false });
+      }
+      state.drawn = chose;
+      render();
+    }
+
+    function render(){
+      cardsEl.innerHTML = '';
+      const labels = {
+        1:["핵심"],
+        3:["과거","현재","미래"],
+        5:["상황","장점","장애","조언","결과"],
+      }[state.spread];
+
+      state.drawn.forEach((c, idx)=>{
+        const card = document.createElement('div');
+        card.className = 'tarot-card' + (c.flipped?' flipped':'') + (c.reversed?' reversed':'');
+        card.style.setProperty('--tilt', (state.rng()*2-1).toFixed(2)+'deg');
+        card.innerHTML = `
+          <div class="card-wrap">
+            <div class="face back"> <div class="sigil">TAROT</div> <div class="badge">${labels[idx]||''}</div> </div>
+            <div class="face front">
+              <div class="badge">${labels[idx]||''}</div>
+              <div class="badge rev">${c.reversed? '역위' : '정위'}</div>
+              <div class="inner">
+                <div class="name">${c.name}</div>
+                ${c.minor? `<div class="minor">${c.minor}</div>`: ''}
+                <div class="upright">${c.up}</div>
+                <div class="reversed">${c.rev}</div>
+              </div>
+            </div>
+          </div>`;
+        card.addEventListener('click', ()=>{
+          c.flipped = !c.flipped; card.classList.toggle('flipped');
+          showMeaning(c);
+        });
+        cardsEl.appendChild(card);
+      });
+
+      meaningEl.textContent = '카드를 클릭하면 의미가 여기 표시돼요 ✨';
+    }
+
+    function showMeaning(c){
+      const parts = [];
+      parts.push(`<b>${c.name}</b>`);
+      if(c.type==='minor' && c.minor) parts.push(`<span class="small">${c.minor}</span>`);
+      parts.push('<br/>' + (c.reversed? `<b>역위</b> · ${c.rev}` : `<b>정위</b> · ${c.up}`));
+      // 간단한 리딩 문장 생성
+      const gist = c.reversed ? c.rev : c.up;
+      const line = (c.reversed? '현재는 뒤집힌 흐름. ':'') + summarize(gist);
+      parts.push(`<div style="margin-top:8px;opacity:.9">${line}</div>`);
+      meaningEl.innerHTML = parts.join(' ');
+    }
+
+    function summarize(text){
+      const hints = [
+        '핵심 포인트에 에너지를 모아보세요.',
+        '느리더라도 균형을 지키는 것이 좋아요.',
+        '관계를 통해 답을 확인할 수 있어요.',
+        '과감히 정리하면 길이 열립니다.',
+        '직관이 말하는 한 문장을 적어보세요.',
+      ];
+      return text + ' · ' + hints[Math.floor(state.rng()*hints.length)];
+    }
+
+    // --- 이벤트 & 초기화 ---
+    function initFromQuery(){
+      const qs = new URLSearchParams(location.search);
+      const spread = Number(qs.get('spread'));
+      const overlay = qs.get('overlay');
+      const rev = Number(qs.get('rev'));
+      const viewer = qs.get('viewer');
+      if([1,3,5].includes(spread)) { state.spread = spread; el('#spread').value = String(spread); }
+      if(!isNaN(rev)) { state.reversedPct = Math.max(0, Math.min(100, rev)); el('#revPct').value = String(state.reversedPct); }
+      if(viewer) el('#viewer').value = viewer;
+      if(overlay==='1' || overlay==='true'){ toggleOverlay(true); el('#toggleOverlay').checked = true; }
+      updateHeadline();
+      updateRevLabel();
+    }
+
+    function updateRevLabel(){
+      el('#revPctLabel').textContent = `(${state.reversedPct}%)`;
+    }
+
+    function flipAll(){ state.drawn.forEach(c=> c.flipped=true); document.querySelectorAll('.tarot-card').forEach(t=> t.classList.add('flipped')); }
+    function resetAll(){ state.drawn=[]; cardsEl.innerHTML=''; meaningEl.textContent='초기화됨. 새로 뽑기(D)로 시작하세요.'; }
+
+    function toggleOverlay(force){
+      const app = el('#app');
+      const stage = el('#stage');
+      const on = force!==undefined ? force : !app.classList.contains('overlay-hidden-controls');
+      app.classList.toggle('overlay-hidden-controls', on);
+      stage.classList.toggle('transparent', on);
+    }
+
+    // 바인딩
+    el('#spread').addEventListener('change', e=>{ state.spread = Number(e.target.value); updateHeadline(); draw(); });
+    el('#revPct').addEventListener('input', e=>{ state.reversedPct = Number(e.target.value); updateRevLabel(); });
+    el('#btnDraw').addEventListener('click', draw);
+    el('#btnFlip').addEventListener('click', flipAll);
+    el('#btnReset').addEventListener('click', resetAll);
+    el('#toggleOverlay').addEventListener('change', e=> toggleOverlay(e.target.checked));
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='d' || e.key==='D') draw();
+      if(e.key==='f' || e.key==='F') flipAll();
+      if(e.key==='r' || e.key==='R') resetAll();
+      if(e.key==='h' || e.key==='H') toggleOverlay();
+    });
+
+    // 시작
+    initFromQuery();
+    draw();
+  </script>
+</body>
+</html>
