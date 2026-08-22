@@ -524,6 +524,47 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(212, 175, 55, 0.7);
         }
+        /* Mobile table optimization: keep donation amount visible */
+        @media (max-width: 640px) {
+            .container { padding: 0 10px; }
+            .table-container { border-radius: 12px; }
+            table { table-layout: fixed; }
+
+            /* Hide ID only on small screens to reserve space for the amount */
+            thead th:nth-child(3),
+            tbody td.id-cell {
+                display: none;
+            }
+
+            thead th:nth-child(1) { width: 16% !important; }
+            thead th:nth-child(2) { width: 52% !important; }
+            thead th:nth-child(4) { width: 32% !important; }
+
+            th {
+                padding: 13px 6px;
+                font-size: .78rem;
+                letter-spacing: 0;
+                white-space: nowrap;
+            }
+            td {
+                padding: 13px 6px;
+                font-size: .86rem;
+            }
+            .rank-cell {
+                font-size: .9rem;
+                white-space: nowrap;
+            }
+            .name-cell {
+                line-height: 1.35;
+                overflow-wrap: anywhere;
+            }
+            .amount-cell {
+                font-size: .9rem;
+                white-space: nowrap;
+                letter-spacing: -.2px;
+            }
+        }
+
     </style>
 </head>
 <body>
