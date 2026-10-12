@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#1c1229" />
+<title>TT컴퍼니 | 게스트 혜루찡 공약표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#130e1d;--card:#241a32;--line:rgba(255,215,159,.19);--muted:#c9b8d5;--gold:#f8d99d;--pink:#ffa6d1;--white:#fff9fc}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--white);font-family:'Noto Sans KR',system-ui,sans-serif;background:radial-gradient(ellipse at 12% 4%,#4c274b 0,transparent 38%),radial-gradient(ellipse at 100% 45%,#352044 0,transparent 35%),var(--bg);min-height:100vh}
+body:before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.35;background-image:radial-gradient(#ffe0a5 .65px,transparent .65px);background-size:33px 33px;mask-image:linear-gradient(to bottom,#000,transparent 80%)}
+.container{max-width:1100px;margin:auto;padding:56px 22px 68px;position:relative}header{text-align:center;margin-bottom:36px}.eyebrow{display:inline-flex;gap:8px;align-items:center;padding:9px 18px;border:1px solid #b58a8d80;border-radius:999px;background:#ffffff0a;color:var(--gold);font-size:13px;letter-spacing:2px;font-weight:800}h1{font-size:clamp(30px,5vw,58px);line-height:1.22;letter-spacing:-2px;margin:21px 0 14px;font-weight:900}h1 span{background:linear-gradient(100deg,#fff2dc,#ffb6d9 65%,#e2c8ff);color:transparent;background-clip:text}header p{color:var(--muted);font-size:15px;margin:0}.chick{font-size:35px;display:block;margin-bottom:8px;filter:drop-shadow(0 6px 14px #e9a13c33)}
+.summary{margin:0 0 24px;padding:18px 22px;border-radius:18px;background:linear-gradient(100deg,#40273c,#291e3b);border:1px solid var(--line);display:flex;align-items:center;gap:15px;justify-content:space-between}.summary strong{font-size:15px}.summary small{display:block;color:var(--muted);margin-top:5px}.summary .spark{font-size:26px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.tier{border:1px solid var(--line);border-radius:19px;padding:23px 22px;text-align:left;background:linear-gradient(145deg,#2c203a,#21182e);color:inherit;cursor:pointer;min-height:156px;position:relative;transition:transform .2s,border-color .2s,box-shadow .2s;display:flex;flex-direction:column;justify-content:space-between;font:inherit}.tier:hover,.tier:focus-visible{transform:translateY(-3px);border-color:#edbaaf;box-shadow:0 10px 34px #08040c85;outline:none}.tier.selected{border-color:var(--gold);box-shadow:0 0 0 1px #f8d99d55,0 12px 35px #08040c55}.amount{display:flex;align-items:center;justify-content:space-between;gap:12px}.amount strong{font-size:clamp(21px,2.6vw,28px);font-weight:900;letter-spacing:-1px;color:var(--gold)}.tag{font-size:11px;border-radius:999px;padding:5px 10px;border:1px solid #f5c99e55;color:#ffe6cc;white-space:nowrap}.reward{color:#f7ebf7;font-size:15px;font-weight:600;line-height:1.65;word-break:keep-all;margin-top:17px}.reward em{font-style:normal;color:#ffb5d9;font-weight:900}.tier.special{background:linear-gradient(125deg,#4a2843,#30213f 75%)}.tier.top{background:linear-gradient(120deg,#664438,#3d263e 58%,#2c2138);border-color:#e8b77680}.tier.top .amount strong{color:#ffe4ad}.tier.top:after{content:'✦';position:absolute;right:20px;bottom:10px;color:#ffd79450;font-size:35px}
+.detail{margin-top:22px;border:1px solid #eec49f66;background:#221a2c;border-radius:20px;padding:24px 26px;display:flex;align-items:center;justify-content:space-between;gap:12px}.detail label{display:block;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:1px}.detail h2{font-size:23px;margin:6px 0;color:var(--gold)}.detail p{margin:0;font-size:15px;line-height:1.75}.detail button{border:1px solid #d5b7d0;background:#ffffff10;color:white;border-radius:12px;padding:11px 17px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.detail button:hover{background:#ffffff20}.foot{text-align:center;color:#9d8ca9;font-size:12px;margin:30px 0 0;line-height:1.9}.foot b{color:#d9bbdf}
+.links-section{margin-top:38px}.links-heading{text-align:center;margin:0 0 17px;font-size:20px;color:var(--gold);font-weight:900}.links-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.quick-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;text-decoration:none;color:var(--white);border:1px solid var(--line);border-radius:17px;padding:23px 14px;background:linear-gradient(145deg,#32213d,#23192f);transition:transform .2s,border-color .2s,background .2s}.quick-link:hover,.quick-link:focus-visible{transform:translateY(-3px);border-color:var(--gold);background:linear-gradient(145deg,#4a2a4a,#30213f);outline:none}.quick-link .link-icon{font-size:27px}.quick-link strong{font-size:15px}.quick-link small{font-size:12px;color:var(--muted)}
+@media(max-width:680px){.container{padding:36px 15px 45px}.grid{grid-template-columns:1fr;gap:11px}.tier{min-height:130px;padding:20px}.summary{padding:16px}.detail{align-items:stretch;flex-direction:column;padding:20px}.detail button{align-self:flex-start}.links-grid{grid-template-columns:1fr}.quick-link{padding:17px}.links-heading{font-size:19px}h1{letter-spacing:-1px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="container">
+<header><span class="chick" aria-hidden="true">🐥</span><div class="eyebrow">TT COMPANY · SPECIAL GUEST</div><h1><span>혜루찡 공약표</span></h1><p>함께해 주시는 마음에 혜루찡만의 특별한 약속을 전합니다 ♡</p></header>
+<section class="summary" aria-label="공약 안내"><div><strong>✨ 금액별 공약 한눈에 보기</strong><small>원하는 금액의 카드를 눌러 공약 내용을 확인해 보세요.</small></div><span class="spark" aria-hidden="true">👑</span></section>
+<section class="grid" id="tiers" aria-label="후원 금액별 공약">
+<button class="tier" data-amount="1만원 이상" data-reward="잘 챙겨드립니다 !"><div class="amount"><strong>1만원 이상</strong><span class="tag">THANK YOU</span></div><div class="reward">잘 챙겨드립니다 !</div></button>
+<button class="tier" data-amount="10만원 이상" data-reward="쪽셀 + 역팬 5%"><div class="amount"><strong>10만원 이상</strong></div><div class="reward">쪽셀 + <em>역팬 5%</em></div></button>
+<button class="tier" data-amount="20만원 이상" data-reward="사진방셀 2장 + 역팬 5%"><div class="amount"><strong>20만원 이상</strong></div><div class="reward">사진방셀 2장 + <em>역팬 5%</em></div></button>
+<button class="tier" data-amount="30만원 이상" data-reward="움짤방셀 + 역팬 5%"><div class="amount"><strong>30만원 이상</strong></div><div class="reward">움짤방셀 + <em>역팬 5%</em></div></button>
+<button class="tier" data-amount="50만원 이상" data-reward="정성움짤방셀 + 역팬 5%"><div class="amount"><strong>50만원 이상</strong></div><div class="reward">정성움짤방셀 + <em>역팬 5%</em></div></button>
+<button class="tier special" data-amount="100만원 이상" data-reward="알아서 잘 챙겨드립니다!"><div class="amount"><strong>100만원 이상</strong><span class="tag">SPECIAL</span></div><div class="reward">알아서 잘 챙겨드립니다!</div></button>
+<button class="tier special" data-amount="300만원 이상" data-reward="카톡 + 방송국꾸며주기 + 역팬 5%"><div class="amount"><strong>300만원 이상</strong><span class="tag">VIP</span></div><div class="reward">카톡 + 방송국꾸며주기 + <em>역팬 5%</em></div></button>
+<button class="tier special" data-amount="500만원 이상" data-reward="3만개공약 + 커데"><div class="amount"><strong>500만원 이상</strong><span class="tag">VIP</span></div><div class="reward">3만개공약 + 커데</div></button>
+<button class="tier top" data-amount="1000만원 이상" data-reward="모든공약 + 식데 + 루루가알잘딱깔센"><div class="amount"><strong>1000만원 이상</strong><span class="tag">ROYAL</span></div><div class="reward">모든공약 + 식데 + 루루가알잘딱깔센</div></button>
+<button class="tier top" data-amount="3000만원 이상" data-reward="루루가알잘딱깔센 ^.^"><div class="amount"><strong>3000만원 이상</strong><span class="tag">ROYAL</span></div><div class="reward">루루가알잘딱깔센 ^.^</div></button>
+</section>
+<section class="detail" id="detail" aria-live="polite"><div><label>SELECTED PLEDGE</label><h2 id="chosenAmount">1만원 이상</h2><p id="chosenReward">잘 챙겨드립니다 !</p></div><button id="copyBtn" type="button">공약 내용 복사 ↗</button></section>
+<section class="links-section" aria-label="TT컴퍼니 바로가기">
+<h2 class="links-heading">🐥 TT컴퍼니 바로가기</h2>
+<div class="links-grid">
+<a class="quick-link" href="https://www.youtube.com/channel/UCIPSh9sMshvmJd3_yC9RVZw" target="_blank" rel="noopener noreferrer"><span class="link-icon" aria-hidden="true">🔴</span><strong>TT컴퍼니 (Live)</strong><small>유튜브 라이브 바로가기 ↗</small></a>
+<a class="quick-link" href="https://ttcompany.co.kr/signatures" target="_blank" rel="noopener noreferrer"><span class="link-icon" aria-hidden="true">🎵</span><strong>TT컴퍼니 (시그니처 목록)</strong><small>시그니처 목록 확인 ↗</small></a>
+<a class="quick-link" href="https://toon.at/donate/ttcompany" target="_blank" rel="noopener noreferrer"><span class="link-icon" aria-hidden="true">💝</span><strong>TT컴퍼니 (투네이션 후원)</strong><small>투네이션 후원 바로가기 ↗</small></a>
+</div>
+</section>
+<p class="foot">🐥 <b>TT COMPANY × 혜루찡</b> 🐥<br>항상 함께해 주셔서 감사합니다 ♡</p>
+</main>
+<script>
+const cards=[...document.querySelectorAll('.tier')];const amount=document.querySelector('#chosenAmount');const reward=document.querySelector('#chosenReward');const copy=document.querySelector('#copyBtn');function select(card){cards.forEach(x=>{x.classList.toggle('selected',x===card);x.setAttribute('aria-pressed',String(x===card))});amount.textContent=card.dataset.amount;reward.textContent=card.dataset.reward;copy.textContent='공약 내용 복사 ↗'}cards.forEach(card=>card.addEventListener('click',()=>select(card)));select(cards[0]);copy.addEventListener('click',async()=>{const value=`${amount.textContent} : ${reward.textContent}`;try{await navigator.clipboard.writeText(value);copy.textContent='복사 완료 ✓'}catch{const box=document.createElement('textarea');box.value=value;document.body.appendChild(box);box.select();const ok=document.execCommand('copy');box.remove();copy.textContent=ok?'복사 완료 ✓':'복사할 내용을 선택해 주세요'}});
+</script>
+</body>
+</html>
